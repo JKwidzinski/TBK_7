@@ -1,0 +1,1 @@
+docker-compose -f docker-compose.yaml -f docker-compose-tests.yaml -p zad3 up -d

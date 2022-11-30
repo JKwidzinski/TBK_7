@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  todo-db:
+    image: diamol/postgres:11.5
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=todo-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - todo-net
+    volumes:
+      - ${PGDATA}:/docker-entrypoint-initdb.d
+
+  todo-web:
+    image: diamol/ch06-todo-list:v2
+    restart: unless-stopped
+    ports:
+      - "8089:80"
+    environment:
+      - Database:Provider=Postgres
+    depends_on:
+      - todo-db
+    networks:
+      - todo-net
+    secrets:
+      - source: postgres-connection
+        target: /app/config/secrets.json
+
+networks:
+  todo-net:
+
+secrets:
+  postgres-connection:
+    file: ./config/secrets.json

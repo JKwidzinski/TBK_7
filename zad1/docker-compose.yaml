@@ -1,0 +1,52 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:11.5-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    networks:
+      - api-net
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+
+  api:
+    image: jakubkwidzinski/api-image
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - Database:Provider=Postgres
+    depends_on:
+      - db
+    networks:
+      - api-net
+    secrets:
+      - source: postgres-connection
+        target: /app/config/secrets.json
+
+  tests:
+    image: jakubkwidzinski/tests-image
+    restart: unless-stopped
+    ports:
+      - "3030:80"
+    environment:
+      - Database:Provider=Postgres
+    depends_on:
+      - db
+    networks:
+      - api-net
+    secrets:
+      - source: postgres-connection
+        target: /app/config/secrets.json
+
+networks:
+  api-net:
+
+secrets:
+  postgres-connection:
+    file: ./config/secrets.json
